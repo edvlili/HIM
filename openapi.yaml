@@ -1,0 +1,426 @@
+openapi: 3.0.3
+info:
+  title: Home Inventory Management API
+  description: API for managing home inventories with product tracking capabilities
+  version: 1.0.0
+  
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Development server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        username:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - email
+        - username
+        - firstName
+        - lastName
+
+    UserRegistration:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        username:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        password:
+          type: string
+          format: password
+      required:
+        - email
+        - username
+        - firstName
+        - lastName
+        - password
+
+    Home:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        address:
+          type: string
+        userId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - name
+        - userId
+
+    Item:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        barcode:
+          type: string
+          description: Product barcode (EAN, UPC, etc.)
+        name:
+          type: string
+        brand:
+          type: string
+        category:
+          type: string
+          enum: [FOOD, BEVERAGES, CLEANING, PERSONAL_CARE, HOUSEHOLD, PRODUCE, OTHER]
+        subcategory:
+          type: string
+        quantity:
+          type: number
+          format: float
+        unit:
+          type: string
+          enum: [UNITS, KG, G, L, ML, OZ, LB]
+        expirationDate:
+          type: string
+          format: date
+        nutritionalInfo:
+          type: object
+          properties:
+            calories:
+              type: number
+            proteins:
+              type: number
+            carbohydrates:
+              type: number
+            fats:
+              type: number
+            allergens:
+              type: array
+              items:
+                type: string
+        storage:
+          type: string
+          enum: [ROOM_TEMP, REFRIGERATED, FROZEN]
+        homeId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - name
+        - category
+        - quantity
+        - unit
+        - homeId
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+        - code
+        - message
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        '201':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+
+  /homes:
+    get:
+      summary: Get all homes for authenticated user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of homes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Home'
+    
+    post:
+      summary: Create a new home
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Home'
+      responses:
+        '201':
+          description: Home created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Home'
+
+  /homes/{homeId}:
+    parameters:
+      - name: homeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    
+    get:
+      summary: Get home by ID
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Home details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Home'
+    
+    put:
+      summary: Update home
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Home'
+      responses:
+        '200':
+          description: Home updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Home'
+    
+    delete:
+      summary: Delete home
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Home deleted
+
+  /homes/{homeId}/items:
+    parameters:
+      - name: homeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    
+    get:
+      summary: Get all items in a home
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+    
+    post:
+      summary: Add item to home
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Item'
+      responses:
+        '201':
+          description: Item added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+
+  /homes/{homeId}/items/{itemId}:
+    parameters:
+      - name: homeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    
+    get:
+      summary: Get item by ID
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+    
+    put:
+      summary: Update item
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Item'
+      responses:
+        '200':
+          description: Item updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+    
+    delete:
+      summary: Delete item
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Item deleted
+
+  /products/lookup:
+    get:
+      summary: Look up product information by barcode
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: barcode
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Product barcode (EAN, UPC, etc.)
+      responses:
+        '200':
+          description: Product information found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error' 
