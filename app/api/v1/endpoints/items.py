@@ -140,14 +140,14 @@ def update_item(
     return item
 
 
-@router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
 def delete_item(
     *,
     db: Session = Depends(get_db),
     home_id: UUID,
     item_id: UUID,
     current_user: User = Depends(get_current_user),
-) -> Any:
+) -> None:
     """
     Delete item.
     """

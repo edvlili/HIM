@@ -92,13 +92,13 @@ def update_home(
     return home
 
 
-@router.delete("/{home_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{home_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
 def delete_home(
     *,
     db: Session = Depends(get_db),
     home_id: UUID,
     current_user: User = Depends(get_current_user),
-) -> Any:
+) -> None:
     """
     Delete home.
     """

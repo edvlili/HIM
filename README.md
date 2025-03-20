@@ -16,9 +16,9 @@ A FastAPI-based REST API for managing home inventories with product tracking cap
 
 - Python 3.8+
 - PostgreSQL 12+
-- Poetry (optional, for dependency management)
+- Make utility
 
-## Setup
+## Quick Start
 
 1. Clone the repository:
 ```bash
@@ -26,46 +26,48 @@ git clone <repository-url>
 cd home-inventory-management
 ```
 
-2. Create and activate a virtual environment:
+2. Make sure PostgreSQL is running and create a database:
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# Connect to PostgreSQL
+psql -U postgres
+
+# In the PostgreSQL prompt, create the database
+CREATE DATABASE him_db;
+\q
 ```
 
-3. Install dependencies:
+3. Run the automated setup:
 ```bash
-pip install -r requirements.txt
+make setup-all
 ```
+This command will:
+- Create a Python virtual environment
+- Install all dependencies
+- Set up the environment file (you'll be prompted for database credentials)
+- Run database migrations
 
-4. Create a PostgreSQL database and update the connection string in `.env`:
-```bash
-cp .env.example .env
-# Edit .env with your database credentials
-```
-
-5. Run database migrations:
-```bash
-make migrate
-```
-
-## Running the Application
-
-Start the development server:
+4. Start the application:
 ```bash
 make run
 ```
 
-The API will be available at http://localhost:8000/api/v1
+The API will be available at:
+- API Endpoints: http://localhost:8000/api/v1
+- Interactive API Documentation (Swagger UI): http://localhost:8000/docs
 
-API documentation (Swagger UI) will be available at http://localhost:8000/docs
+## Development Commands
 
-## Development
+All commands are available through the Makefile:
 
-- Run tests: `make test`
-- Format code: `make lint`
-- Create new migration: `alembic revision --autogenerate -m "description"`
-- Apply migrations: `make migrate`
-- Rollback migrations: `make migrate-down`
+- `make setup-all` - Complete project setup (first-time setup)
+- `make run` - Start the development server
+- `make test` - Run tests
+- `make lint` - Check code style
+- `make format` - Format code
+- `make migrate-up` - Apply database migrations
+- `make migrate-down` - Rollback last migration
+- `make clean` - Clean up generated files
+- `make help` - Show all available commands
 
 ## API Endpoints
 

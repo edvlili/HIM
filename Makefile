@@ -17,7 +17,26 @@ DOCKER_IMAGE = home-inventory-api
 DOCKER_TAG = latest
 
 # Default target
-all: setup
+all: setup-all
+
+# Complete setup target
+setup-all: env-create install setup-env migrate-up
+	@echo "Setup completed successfully!"
+	@echo "Run 'make run' to start the application"
+
+# Setup environment file
+setup-env:
+	@echo "Setting up environment file..."
+	@if [ ! -f .env ]; then \
+		cp .env.example .env; \
+		echo "Created .env file from example"; \
+		read -p "Enter PostgreSQL username: " DB_USER && \
+		read -p "Enter PostgreSQL password: " DB_PASS && \
+		read -p "Enter database name (default: him_db): " DB_NAME && \
+		DB_NAME=$${DB_NAME:-him_db} && \
+		sed -i "s|postgresql://user:password@localhost:5432/him_db|postgresql://$${DB_USER}:$${DB_PASS}@localhost:5432/$${DB_NAME}|g" .env && \
+		echo "Updated database configuration in .env"; \
+	fi
 
 # Create virtualenv environment
 env-create:
