@@ -4,7 +4,7 @@
 ENV_NAME = HIM
 PYTHON_VERSION = 3.8
 PYTHON = python3
-VIRTUALENV = virtualenv
+VIRTUALENV = venv
 
 # Project settings
 VENV_DIR = $(ENV_NAME)
@@ -26,7 +26,7 @@ env-create:
 		echo "Installing virtualenv..."; \
 		$(PYTHON) -m pip install virtualenv; \
 	fi
-	@$(VIRTUALENV) -p $(PYTHON) $(ENV_NAME)
+	@$(PYTHON) -m $(VIRTUALENV) $(ENV_NAME)
 	@echo "Activating environment and installing dependencies..."
 	@. $(ENV_NAME)/bin/activate && pip install --upgrade pip
 	@. $(ENV_NAME)/bin/activate && pip install -r requirements.txt
